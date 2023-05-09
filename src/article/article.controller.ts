@@ -7,22 +7,31 @@ import {
   Param,
   Delete,
   NotFoundException,
+  ParseIntPipe,
+  UseFilters,
+  HttpException,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { ArticleEntity } from './entities/article.entity';
+import { PrismaClientExceptionFilter } from '../prisma-client-exception/prisma-client-exception.filter';
 
 @Controller('article')
 @ApiTags('article')
+@UseFilters(PrismaClientExceptionFilter)
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
   @Post()
   @ApiCreatedResponse({ type: ArticleEntity })
-  create(@Body() createArticleDto: CreateArticleDto) {
-    return this.articleService.create(createArticleDto);
+  async create(@Body() createArticleDto: CreateArticleDto) {
+    try {
+      return await this.articleService.create(createArticleDto);
+    } catch (e) {
+      throw new HttpException('Article already exists', 409);
+    }
   }
 
   @Get()
@@ -33,7 +42,7 @@ export class ArticleController {
 
   @Get(':id')
   @ApiCreatedResponse({ type: ArticleEntity })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     try {
       const article = await this.articleService.findOne(+id);
       if (!article) throw new Error();
@@ -46,7 +55,7 @@ export class ArticleController {
   @Patch(':id')
   @ApiCreatedResponse({ type: ArticleEntity })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateArticleDto: UpdateArticleDto,
   ) {
     try {
@@ -58,7 +67,7 @@ export class ArticleController {
 
   @Delete(':id')
   @ApiCreatedResponse({ type: ArticleEntity })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     try {
       return await this.articleService.remove(+id);
     } catch (e) {
