@@ -3,31 +3,21 @@ import { ArgumentsHost, Catch, HttpStatus } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Prisma } from '@prisma/client';
 import { Response } from 'express';
+import { prismaErrorHandler } from '../utils/errorPrisma';
 
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaClientExceptionFilter extends BaseExceptionFilter {
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    // const message = exception.message.replace(/\n/g, '');
+    const message = exception.message.replace(/\n/g, '');
 
-    const statusCode = HttpStatus.CONFLICT;
-    response
-      .status(statusCode)
-      .json({ statusCode, message: 'Unhandled Exceprion' });
-    // switch (exception.code) {
-    //   case 'P2002':
-    //     const status = HttpStatus.CONFLICT;
-    //     response.status(status).json({
-    //       statusCode: status,
-    //       message: message,
-    //     });
-    //     break;
-    //   // TODO catch other error codes (e.g. 'P2000' or 'P2025')
-    //   default:
-    //     // default 500 error code
-    //     super.catch(exception, host);
-    //     break;
-    // }
+    const errorCodes = exception.code || 'default';
+    const errors = prismaErrorHandler(errorCodes, message);
+    console.log(errors);
+    response.status(errors.statusCode).json({
+      statusCode: errors.statusCode,
+      message: errors.message,
+    });
   }
 }

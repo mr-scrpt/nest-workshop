@@ -27,11 +27,12 @@ export class ArticleController {
   @Post()
   @ApiCreatedResponse({ type: ArticleEntity })
   async create(@Body() createArticleDto: CreateArticleDto) {
-    try {
-      return await this.articleService.create(createArticleDto);
-    } catch (e) {
-      throw new HttpException('Article already exists', 409);
-    }
+    return await this.articleService.create(createArticleDto);
+    // try {
+    //   return await this.articleService.create(createArticleDto);
+    // } catch (e) {
+    //   throw new HttpException('Article already exists', 409);
+    // }
   }
 
   @Get()
