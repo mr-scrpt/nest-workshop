@@ -14,7 +14,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
 
     const errorCodes = exception.code || 'default';
     const errors = prismaErrorHandler(errorCodes, message);
-    console.log(errors);
+
     response.status(errors.statusCode).json({
       statusCode: errors.statusCode,
       message: errors.message,
